@@ -13,6 +13,18 @@ export const QUEUE_NAMES = {
   CLEANUP: 'cleanup',
 } as const;
 
+// ─── Rate Limits ───────────────────────────────────
+export const RATE_LIMITS = {
+  GLOBAL: {
+    TTL: 60, // 1 minute
+    LIMIT: 100, // 100 requests per minute
+  },
+  AUTH: {
+    TTL: 60, // 1 minute
+    LIMIT: 10, // 10 requests per minute for auth endpoints
+  },
+} as const;
+
 // ─── Redis Key Prefixes ────────────────────────────
 export const REDIS_PREFIXES = {
   SESSION: 'session:',

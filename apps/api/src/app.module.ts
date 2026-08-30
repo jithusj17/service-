@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { configSchema } from './config/config.schema';
 import { DatabaseModule } from './database/prisma.module';
 import { HealthModule } from './health/health.module';
 import { AppConfigModule } from './config/config.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -52,6 +55,13 @@ import { AppConfigModule } from './config/config.module';
 
     // ─── Features ────────────────────────────────────
     HealthModule,
+    AuthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

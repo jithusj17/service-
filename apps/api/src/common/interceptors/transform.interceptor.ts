@@ -9,10 +9,7 @@ export interface ApiResponseEnvelope<T> {
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponseEnvelope<T>> {
-  intercept(
-    _context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<ApiResponseEnvelope<T>> {
+  intercept(_context: ExecutionContext, next: CallHandler): Observable<ApiResponseEnvelope<T>> {
     return next.handle().pipe(
       map((data) => {
         // If the response already has a 'data' envelope, pass through

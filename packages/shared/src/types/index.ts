@@ -42,6 +42,15 @@ export interface TokenPair {
   refreshToken: string;
 }
 
+// ─── Tenant ────────────────────────────────────────
+export interface Tenant {
+  id: string;
+  name: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
 // ─── User ──────────────────────────────────────────
 export enum UserRole {
   PLATFORM_ADMIN = 'PLATFORM_ADMIN',
@@ -54,6 +63,53 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole | string;
+  status: UserStatus | string;
+  isEmailVerified: boolean;
+  tenantId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// ─── Session & Tokens ──────────────────────────────
+export interface Session {
+  id: string;
+  userId: string;
+  token: string;
+  expiresAt: Date | string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  revokedAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface VerificationToken {
+  id: string;
+  userId: string;
+  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
+  token: string;
+  expiresAt: Date | string;
+  usedAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// ─── Audit Event ───────────────────────────────────
+export interface AuditEvent {
+  id: string;
+  action: string;
+  userId?: string | null;
+  tenantId?: string | null;
+  details?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  createdAt: Date | string;
 }
 
 // ─── Booking ───────────────────────────────────────

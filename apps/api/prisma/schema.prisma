@@ -7,12 +7,95 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Models will be added in Phase 2 ─────────────
-// Placeholder model to allow Prisma to generate the client
-model HealthCheck {
+// ─── Tenant ──────────────────────────────────────
+model Tenant {
   id        String   @id @default(uuid())
-  status    String   @default("ok")
-  checkedAt DateTime @default(now())
+  name      String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("health_checks")
+  users       User[]
+  auditEvents AuditEvent[]
+
+  @@map("tenants")
 }
+
+// ─── User ────────────────────────────────────────
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  passwordHash    String
+  name            String
+  role            String   @default("TENANT_ADMIN")
+  status          String   @default("ACTIVE")
+  isEmailVerified Boolean  @default(false)
+  tenantId        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions           Session[]
+  verificationTokens VerificationToken[]
+  auditEvents        AuditEvent[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+// ─── Session (Refresh Tokens) ────────────────────
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ─── Verification Token ──────────────────────────
+model VerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String    // e.g., "EMAIL_VERIFICATION", "PASSWORD_RESET"
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("verification_tokens")
+}
+
+// ─── Audit Event ─────────────────────────────────
+model AuditEvent {
+  id        String   @id @default(uuid())
+  action    String   // e.g., "USER_LOGIN", "PASSWORD_RESET"
+  userId    String?
+  tenantId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([action])
+  @@map("audit_events")
+}
+
