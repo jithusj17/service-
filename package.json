@@ -1,0 +1,45 @@
+{
+  "name": "service-platform",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Local Service Management Platform",
+  "scripts": {
+    "dev": "pnpm --filter @service/api dev & pnpm --filter @service/web dev",
+    "dev:api": "pnpm --filter @service/api dev",
+    "dev:web": "pnpm --filter @service/web dev",
+    "dev:worker": "pnpm --filter @service/worker dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @service/api build",
+    "build:web": "pnpm --filter @service/web build",
+    "build:worker": "pnpm --filter @service/worker build",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @service/api test:e2e",
+    "test:cov": "pnpm -r test:cov",
+    "db:generate": "pnpm --filter @service/api db:generate",
+    "db:migrate": "pnpm --filter @service/api db:migrate",
+    "db:push": "pnpm --filter @service/api db:push",
+    "db:studio": "pnpm --filter @service/api db:studio",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next build coverage"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "typescript": "^5.5.4"
+  }
+}
