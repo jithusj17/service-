@@ -47,7 +47,7 @@ export class AuthService {
 
     // Generate email verification token (mock sending email)
     const verifyToken = randomBytes(32).toString('hex');
-    await this.prisma.verificationToken.create({
+    await this.prisma.extended.verificationToken.create({
       data: {
         userId: user.id,
         type: 'EMAIL_VERIFICATION',
@@ -103,7 +103,7 @@ export class AuthService {
   }
 
   async logout(userId: string, refreshToken: string, ipAddress?: string): Promise<void> {
-    await this.prisma.session.updateMany({
+    await this.prisma.extended.session.updateMany({
       where: { userId, token: refreshToken },
       data: { revokedAt: new Date() },
     });
@@ -111,7 +111,7 @@ export class AuthService {
   }
 
   async refreshToken(token: string, ipAddress?: string, userAgent?: string): Promise<TokenPair> {
-    const session = await this.prisma.session.findUnique({
+    const session = await this.prisma.extended.session.findUnique({
       where: { token },
       include: { user: true },
     });
@@ -121,7 +121,7 @@ export class AuthService {
     }
 
     // Revoke the old refresh token (token rotation)
-    await this.prisma.session.update({
+    await this.prisma.extended.session.update({
       where: { id: session.id },
       data: { revokedAt: new Date() },
     });
@@ -142,13 +142,13 @@ export class AuthService {
     if (!user) return; // Prevent user enumeration
 
     // Invalidate existing tokens
-    await this.prisma.verificationToken.updateMany({
+    await this.prisma.extended.verificationToken.updateMany({
       where: { userId: user.id, type: 'PASSWORD_RESET', usedAt: null },
       data: { usedAt: new Date() }, // Mark as used/invalid
     });
 
     const resetToken = randomBytes(32).toString('hex');
-    await this.prisma.verificationToken.create({
+    await this.prisma.extended.verificationToken.create({
       data: {
         userId: user.id,
         type: 'PASSWORD_RESET',
@@ -171,7 +171,7 @@ export class AuthService {
   }
 
   async resetPassword(dto: ResetPasswordDto, ipAddress?: string): Promise<void> {
-    const record = await this.prisma.verificationToken.findUnique({
+    const record = await this.prisma.extended.verificationToken.findUnique({
       where: { token: dto.token },
       include: { user: true },
     });
@@ -187,17 +187,17 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 12);
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prisma.extended.$transaction([
+      this.prisma.extended.user.update({
         where: { id: record.userId },
         data: { passwordHash },
       }),
-      this.prisma.verificationToken.update({
+      this.prisma.extended.verificationToken.update({
         where: { id: record.id },
         data: { usedAt: new Date() },
       }),
       // Revoke all existing sessions so they have to log in again
-      this.prisma.session.updateMany({
+      this.prisma.extended.session.updateMany({
         where: { userId: record.userId, revokedAt: null },
         data: { revokedAt: new Date() },
       }),
@@ -212,7 +212,7 @@ export class AuthService {
   }
 
   async verifyEmail(token: string, ipAddress?: string): Promise<void> {
-    const record = await this.prisma.verificationToken.findUnique({
+    const record = await this.prisma.extended.verificationToken.findUnique({
       where: { token },
       include: { user: true },
     });
@@ -226,12 +226,12 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired verification token');
     }
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prisma.extended.$transaction([
+      this.prisma.extended.user.update({
         where: { id: record.userId },
         data: { isEmailVerified: true },
       }),
-      this.prisma.verificationToken.update({
+      this.prisma.extended.verificationToken.update({
         where: { id: record.id },
         data: { usedAt: new Date() },
       }),
@@ -267,7 +267,7 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
 
-    await this.prisma.session.create({
+    await this.prisma.extended.session.create({
       data: {
         userId,
         token: refreshTokenString,

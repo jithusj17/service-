@@ -18,7 +18,7 @@ export class AuditService {
 
   async logEvent(data: CreateAuditEventDto): Promise<void> {
     try {
-      await this.prisma.auditEvent.create({
+      await this.prisma.extended.auditEvent.create({
         data: {
           action: data.action,
           userId: data.userId,

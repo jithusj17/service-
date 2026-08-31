@@ -8,7 +8,7 @@ export class UsersService {
 
   async createUser(data: Prisma.UserCreateInput) {
     try {
-      return await this.prisma.user.create({ data });
+      return await this.prisma.extended.user.create({ data });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException('Email already exists');
@@ -18,19 +18,19 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.prisma.extended.user.findUnique({
       where: { email },
     });
   }
 
   async findById(id: string) {
-    return this.prisma.user.findUnique({
+    return this.prisma.extended.user.findUnique({
       where: { id },
     });
   }
 
   async update(id: string, data: Prisma.UserUpdateInput) {
-    return this.prisma.user.update({
+    return this.prisma.extended.user.update({
       where: { id },
       data,
     });

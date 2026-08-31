@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
@@ -7,7 +7,7 @@ export class TenantsService {
 
   async createTenant(name: string) {
     try {
-      const tenant = await this.prisma.tenant.create({
+      const tenant = await this.prisma.extended.tenant.create({
         data: { name },
       });
       return tenant;
@@ -16,9 +16,25 @@ export class TenantsService {
     }
   }
 
-  async findTenantById(id: string) {
-    return this.prisma.tenant.findUnique({
+  async getTenantById(id: string) {
+    const tenant = await this.prisma.extended.tenant.findUnique({
       where: { id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
     });
+
+    if (!tenant) {
+      throw new NotFoundException(`Tenant with ID ${id} not found`);
+    }
+
+    return tenant;
   }
 }
