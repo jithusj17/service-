@@ -10,6 +10,8 @@ import { DatabaseModule } from './database/prisma.module';
 import { HealthModule } from './health/health.module';
 import { AppConfigModule } from './config/config.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { AssetsModule } from './modules/assets/assets.module';
 
 @Module({
   imports: [
@@ -62,6 +64,8 @@ import { AuthModule } from './modules/auth/auth.module';
     // ─── Features ────────────────────────────────────
     HealthModule,
     AuthModule,
+    CustomersModule,
+    AssetsModule,
   ],
   providers: [
     {
