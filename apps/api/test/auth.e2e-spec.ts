@@ -6,7 +6,7 @@
 // A placeholder for e2e tests.
 // Full implementation would require a dedicated test database, Prisma mock, or test containers.
 describe('AuthController (e2e)', () => {
-  let app: INestApplication;
+  let app: any;
 
   beforeAll(async () => {
     // In a real e2e environment, we would use a test DB and PrismaService teardown logic

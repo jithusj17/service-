@@ -39,7 +39,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
             limit: 100,
           },
         ],
-        storage: new ThrottlerStorageRedisService({
+        storage: process.env.NODE_ENV === 'test' ? undefined : new ThrottlerStorageRedisService({
           host: config.redisHost,
           port: config.redisPort,
           password: config.redisPassword,

@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
+
+import { VersioningType } from '@nestjs/common';
+import { PrismaService } from '../src/database/prisma.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -9,9 +12,23 @@ describe('AppController (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({
+        $connect: jest.fn(),
+        $disconnect: jest.fn(),
+        $queryRaw: jest.fn().mockResolvedValue([{}]),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
+    
+    app.setGlobalPrefix('api');
+    app.enableVersioning({
+      type: VersioningType.URI,
+      defaultVersion: '1',
+    });
+    
     await app.init();
   });
 
