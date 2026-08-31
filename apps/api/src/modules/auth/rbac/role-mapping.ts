@@ -1,0 +1,76 @@
+import { Role } from '@prisma/client';
+import { Permission, Permissions } from './permissions';
+
+export const RolePermissions: Record<Role, Permission[]> = {
+  [Role.OWNER]: Object.values(Permissions), // Owner gets all permissions
+
+  [Role.ADMIN]: [
+    Permissions.CUSTOMER_READ,
+    Permissions.CUSTOMER_CREATE,
+    Permissions.CUSTOMER_UPDATE,
+    Permissions.ASSET_READ,
+    Permissions.ASSET_CREATE,
+    Permissions.ASSET_UPDATE,
+    Permissions.REPAIR_READ,
+    Permissions.REPAIR_CREATE,
+    Permissions.REPAIR_UPDATE,
+    Permissions.INVENTORY_READ,
+    Permissions.INVENTORY_UPDATE,
+    Permissions.INVOICE_READ,
+    Permissions.INVOICE_CREATE,
+    Permissions.PAYMENT_READ,
+    Permissions.USER_READ,
+    Permissions.USER_CREATE,
+    Permissions.USER_UPDATE,
+  ],
+
+  [Role.MANAGER]: [
+    Permissions.CUSTOMER_READ,
+    Permissions.CUSTOMER_CREATE,
+    Permissions.CUSTOMER_UPDATE,
+    Permissions.ASSET_READ,
+    Permissions.ASSET_CREATE,
+    Permissions.ASSET_UPDATE,
+    Permissions.REPAIR_READ,
+    Permissions.REPAIR_CREATE,
+    Permissions.REPAIR_UPDATE,
+    Permissions.INVENTORY_READ,
+    Permissions.INVENTORY_UPDATE,
+    Permissions.INVOICE_READ,
+    Permissions.INVOICE_CREATE,
+    Permissions.PAYMENT_READ,
+    Permissions.USER_READ,
+  ],
+
+  [Role.TECHNICIAN]: [
+    Permissions.CUSTOMER_READ,
+    Permissions.ASSET_READ,
+    Permissions.ASSET_UPDATE,
+    Permissions.REPAIR_READ,
+    Permissions.REPAIR_UPDATE,
+    Permissions.INVENTORY_READ,
+    Permissions.INVENTORY_UPDATE,
+  ],
+
+  [Role.STAFF]: [
+    Permissions.CUSTOMER_READ,
+    Permissions.CUSTOMER_CREATE,
+    Permissions.CUSTOMER_UPDATE,
+    Permissions.ASSET_READ,
+    Permissions.ASSET_CREATE,
+    Permissions.REPAIR_READ,
+    Permissions.REPAIR_CREATE,
+    Permissions.INVENTORY_READ,
+    Permissions.INVOICE_READ,
+    Permissions.INVOICE_CREATE,
+    Permissions.PAYMENT_READ,
+  ],
+
+  [Role.CUSTOMER]: [
+    Permissions.CUSTOMER_READ,
+    Permissions.ASSET_READ,
+    Permissions.REPAIR_READ,
+    Permissions.INVOICE_READ,
+    Permissions.PAYMENT_READ,
+  ],
+};
