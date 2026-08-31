@@ -3,7 +3,7 @@ import { ClsService } from 'nestjs-cls';
 
 // List of models that are strictly tenant-bound.
 // Update this list as new tenant-aware models are added.
-const TENANT_MODELS = ['User', 'AuditEvent'];
+const TENANT_MODELS = ['User', 'AuditEvent', 'Customer', 'Asset'];
 
 export const createTenantExtension = (cls: ClsService) => {
   return Prisma.defineExtension({
