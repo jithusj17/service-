@@ -21,13 +21,23 @@ model Tenant {
   @@map("tenants")
 }
 
+// ─── Enums ───────────────────────────────────────
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  TECHNICIAN
+  STAFF
+  CUSTOMER
+}
+
 // ─── User ────────────────────────────────────────
 model User {
   id              String   @id @default(uuid())
   email           String   @unique
   passwordHash    String
   name            String
-  role            String   @default("TENANT_ADMIN")
+  role            Role     @default(OWNER)
   status          String   @default("ACTIVE")
   isEmailVerified Boolean  @default(false)
   tenantId        String
