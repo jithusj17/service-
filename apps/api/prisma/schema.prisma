@@ -17,6 +17,8 @@ model Tenant {
 
   users       User[]
   auditEvents AuditEvent[]
+  customers   Customer[]
+  assets      Asset[]
 
   @@map("tenants")
 }
@@ -29,6 +31,10 @@ enum Role {
   TECHNICIAN
   STAFF
   CUSTOMER
+}
+
+enum AssetType {
+  BICYCLE
 }
 
 // ─── User ────────────────────────────────────────
@@ -108,4 +114,49 @@ model AuditEvent {
   @@index([action])
   @@map("audit_events")
 }
+
+// ─── Customer ────────────────────────────────────
+model Customer {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  address   Json?
+  notes     String?
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assets Asset[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("customers")
+}
+
+// ─── Asset ───────────────────────────────────────
+model Asset {
+  id           String    @id @default(uuid())
+  customerId   String
+  tenantId     String
+  assetType    AssetType @default(BICYCLE)
+  brand        String?
+  model        String?
+  serialNumber String?
+  color        String?
+  notes        String?
+  attributes   Json?     // Type-specific data (e.g. year, bicycleType)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("assets")
+}
+
 
