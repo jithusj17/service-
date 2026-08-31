@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
+import { Role } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { TenantsService } from '../tenants/tenants.service';
 import { AuditService } from '../audit/audit.service';
@@ -35,7 +36,7 @@ export class AuthService {
       name: dto.name,
       passwordHash,
       tenant: { connect: { id: tenant.id } },
-      role: 'TENANT_ADMIN',
+      role: Role.OWNER,
     });
 
     await this.auditService.logEvent({
