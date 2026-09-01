@@ -14,6 +14,8 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { AssetsModule } from './modules/assets/assets.module';
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
+import { DiagnosesModule } from './modules/diagnoses/diagnoses.module';
+import { EstimatesModule } from './modules/estimates/estimates.module';
 
 @Module({
   imports: [
@@ -70,6 +72,8 @@ import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
     AssetsModule,
     ServiceRequestsModule,
     WorkOrdersModule,
+    DiagnosesModule,
+    EstimatesModule,
   ],
   providers: [
     {
