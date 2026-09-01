@@ -18,8 +18,10 @@ model Tenant {
   users       User[]
   auditEvents AuditEvent[]
   customers   Customer[]
-  assets      Asset[]
+  assets          Asset[]
   serviceRequests ServiceRequest[]
+  workOrders      WorkOrder[]
+  workOrderTimelineEvents WorkOrderTimelineEvent[]
 
   @@map("tenants")
 }
@@ -53,6 +55,26 @@ enum ServiceRequestPriority {
   CRITICAL
 }
 
+enum WorkOrderStatus {
+  RECEIVED
+  DIAGNOSING
+  WAITING_FOR_APPROVAL
+  APPROVED
+  WAITING_FOR_PARTS
+  IN_REPAIR
+  QUALITY_CHECK
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum WorkOrderPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 // ─── User ────────────────────────────────────────
 model User {
   id              String   @id @default(uuid())
@@ -67,9 +89,11 @@ model User {
   updatedAt       DateTime @updatedAt
 
   tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions           Session[]
-  verificationTokens VerificationToken[]
-  auditEvents        AuditEvent[]
+  sessions                Session[]
+  verificationTokens      VerificationToken[]
+  auditEvents             AuditEvent[]
+  assignedWorkOrders      WorkOrder[]
+  workOrderTimelineEvents WorkOrderTimelineEvent[]
 
   @@index([tenantId])
   @@map("users")
@@ -145,8 +169,9 @@ model Customer {
   updatedAt DateTime @updatedAt
 
   tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assets Asset[]
+  assets          Asset[]
   serviceRequests ServiceRequest[]
+  workOrders      WorkOrder[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -168,9 +193,10 @@ model Asset {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   serviceRequests ServiceRequest[]
+  workOrders      WorkOrder[]
 
   @@index([tenantId])
   @@index([customerId])
@@ -198,4 +224,52 @@ model ServiceRequest {
   @@index([customerId])
   @@index([assetId])
   @@map("service_requests")
+}
+
+// ─── Work Order ──────────────────────────────────
+model WorkOrder {
+  id              String            @id @default(uuid())
+  workOrderNumber String
+  tenantId        String
+  customerId      String
+  assetId         String
+  technicianId    String?
+  problem         String
+  priority        WorkOrderPriority @default(MEDIUM)
+  status          WorkOrderStatus   @default(RECEIVED)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  tenant     Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  asset      Asset                    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  technician User?                    @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  timeline   WorkOrderTimelineEvent[]
+
+  @@unique([tenantId, workOrderNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([assetId])
+  @@index([technicianId])
+  @@map("work_orders")
+}
+
+// ─── Work Order Timeline Event ───────────────────
+model WorkOrderTimelineEvent {
+  id          String   @id @default(uuid())
+  workOrderId String
+  tenantId    String
+  userId      String?
+  type        String   // e.g., "STATUS_CHANGE", "NOTE_ADDED"
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId])
+  @@index([tenantId])
+  @@map("work_order_timeline_events")
 }
