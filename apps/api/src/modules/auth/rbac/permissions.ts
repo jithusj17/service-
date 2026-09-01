@@ -20,6 +20,17 @@ export const Permissions = {
   WORK_ORDER_UPDATE: 'work_order.update',
   WORK_ORDER_ASSIGN: 'work_order.assign',
 
+  // Diagnosis Permissions
+  DIAGNOSIS_READ: 'diagnosis.read',
+  DIAGNOSIS_CREATE: 'diagnosis.create',
+  DIAGNOSIS_UPDATE: 'diagnosis.update',
+
+  // Estimate Permissions
+  ESTIMATE_READ: 'estimate.read',
+  ESTIMATE_CREATE: 'estimate.create',
+  ESTIMATE_UPDATE: 'estimate.update',
+  ESTIMATE_APPROVE: 'estimate.approve',
+
   REPAIR_READ: 'repair.read',
   REPAIR_CREATE: 'repair.create',
   REPAIR_UPDATE: 'repair.update',
