@@ -204,6 +204,25 @@ export default function WorkOrderDetailsPage() {
           </ul>
         </div>
       </div>
+      <div className="bg-white shadow sm:rounded-lg mt-6">
+        <div className="px-4 py-5 sm:px-6">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Diagnosis</h3>
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5">
+           <p className="text-sm text-gray-500">Diagnosis UI component will be integrated here.</p>
+           {/* Placeholder for Diagnosis form */}
+        </div>
+      </div>
+
+      <div className="bg-white shadow sm:rounded-lg mt-6">
+        <div className="px-4 py-5 sm:px-6">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Estimates</h3>
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5">
+           <p className="text-sm text-gray-500">Estimates UI component will be integrated here.</p>
+           {/* Placeholder for Estimates list and creation form */}
+        </div>
+      </div>
     </div>
   );
 }
