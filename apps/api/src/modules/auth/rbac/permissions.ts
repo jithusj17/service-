@@ -14,7 +14,12 @@ export const Permissions = {
   SERVICE_REQUEST_CREATE: 'service_request.create',
   SERVICE_REQUEST_UPDATE: 'service_request.update',
 
-  // Repair Permissions
+  // Repair/Work Order Permissions
+  WORK_ORDER_READ: 'work_order.read',
+  WORK_ORDER_CREATE: 'work_order.create',
+  WORK_ORDER_UPDATE: 'work_order.update',
+  WORK_ORDER_ASSIGN: 'work_order.assign',
+
   REPAIR_READ: 'repair.read',
   REPAIR_CREATE: 'repair.create',
   REPAIR_UPDATE: 'repair.update',
