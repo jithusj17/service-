@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AssetsModule } from './modules/assets/assets.module';
 import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
+import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { ServiceRequestsModule } from './modules/service-requests/service-reques
     CustomersModule,
     AssetsModule,
     ServiceRequestsModule,
+    WorkOrdersModule,
   ],
   providers: [
     {
