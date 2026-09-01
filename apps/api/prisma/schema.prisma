@@ -22,6 +22,8 @@ model Tenant {
   serviceRequests ServiceRequest[]
   workOrders      WorkOrder[]
   workOrderTimelineEvents WorkOrderTimelineEvent[]
+  diagnoses       Diagnosis[]
+  estimates       Estimate[]
 
   @@map("tenants")
 }
@@ -73,6 +75,22 @@ enum WorkOrderPriority {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum DiagnosisSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EstimateStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
 }
 
 // ─── User ────────────────────────────────────────
@@ -246,6 +264,8 @@ model WorkOrder {
   asset      Asset                    @relation(fields: [assetId], references: [id], onDelete: Cascade)
   technician User?                    @relation(fields: [technicianId], references: [id], onDelete: SetNull)
   timeline   WorkOrderTimelineEvent[]
+  diagnosis  Diagnosis?
+  estimates  Estimate[]
 
   @@unique([tenantId, workOrderNumber])
   @@index([tenantId])
@@ -272,4 +292,48 @@ model WorkOrderTimelineEvent {
   @@index([workOrderId])
   @@index([tenantId])
   @@map("work_order_timeline_events")
+}
+
+// ─── Diagnosis ───────────────────────────────────
+model Diagnosis {
+  id             String            @id @default(uuid())
+  workOrderId    String            @unique
+  tenantId       String
+  problemFound   String
+  recommendation String
+  severity       DiagnosisSeverity @default(MEDIUM)
+  notes          String?
+  attachments    Json?             // Array of { name, url, etc. }
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("diagnoses")
+}
+
+// ─── Estimate ────────────────────────────────────
+model Estimate {
+  id             String         @id @default(uuid())
+  workOrderId    String
+  tenantId       String
+  status         EstimateStatus @default(DRAFT)
+  laborItems     Json?          // Array of { id, name, hours, rate, total }
+  parts          Json?          // Array of { id, name, quantity, price, total }
+  subtotal       Float          @default(0)
+  tax            Float          @default(0)
+  discount       Float          @default(0)
+  total          Float          @default(0)
+  expirationDate DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
+  @@index([tenantId])
+  @@map("estimates")
 }
