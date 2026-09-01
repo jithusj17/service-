@@ -9,6 +9,11 @@ export const Permissions = {
   ASSET_CREATE: 'asset.create',
   ASSET_UPDATE: 'asset.update',
 
+  // Service Request Permissions
+  SERVICE_REQUEST_READ: 'service_request.read',
+  SERVICE_REQUEST_CREATE: 'service_request.create',
+  SERVICE_REQUEST_UPDATE: 'service_request.update',
+
   // Repair Permissions
   REPAIR_READ: 'repair.read',
   REPAIR_CREATE: 'repair.create',

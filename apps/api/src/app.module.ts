@@ -12,6 +12,7 @@ import { AppConfigModule } from './config/config.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AssetsModule } from './modules/assets/assets.module';
+import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { AssetsModule } from './modules/assets/assets.module';
     AuthModule,
     CustomersModule,
     AssetsModule,
+    ServiceRequestsModule,
   ],
   providers: [
     {
