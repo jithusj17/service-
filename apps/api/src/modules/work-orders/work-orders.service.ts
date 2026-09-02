@@ -7,6 +7,7 @@ import { QueryWorkOrderDto } from './dto/query-work-order.dto';
 import { AuditService } from '../audit/audit.service';
 import { Prisma, WorkOrderStatus } from '@prisma/client';
 import { ClsService } from 'nestjs-cls';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class WorkOrdersService {
@@ -14,6 +15,7 @@ export class WorkOrdersService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // Valid state transitions
@@ -197,6 +199,14 @@ export class WorkOrdersService {
       ipAddress,
       details: { workOrderId: id, from: existing.status, to: dto.status },
     });
+
+    await this.notificationsService.queueRepairStatusChanged(
+      updated.tenantId,
+      updated.customerId,
+      updated.id,
+      updated.status,
+      updated.workOrderNumber
+    );
 
     return updated;
   }

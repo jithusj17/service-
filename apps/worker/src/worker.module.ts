@@ -2,6 +2,7 @@ import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
 import { QUEUE_NAMES } from '@service/shared';
+import { createNotificationWorker } from './processors/notification.processor';
 
 interface WorkerModule {
   start: () => Promise<void>;
@@ -50,6 +51,11 @@ export function createWorkerModule(logger: Logger): WorkerModule {
 
       workers.push(healthWorker);
       logger.info('Health worker registered');
+
+      // ─── Notification Worker ────────────────────────
+      const notificationWorker = createNotificationWorker(redisConnection, logger);
+      workers.push(notificationWorker);
+      logger.info('Notification worker registered');
     },
 
     async shutdown() {

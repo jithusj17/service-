@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -38,8 +39,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <header className="h-16 flex items-center justify-end px-8 border-b border-gray-200 bg-white">
+          <NotificationDropdown />
+        </header>
+        
+        {/* Page Content */}
+        <div className="p-8 overflow-y-auto flex-1">
           {children}
         </div>
       </main>

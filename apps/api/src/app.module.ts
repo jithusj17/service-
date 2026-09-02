@@ -19,6 +19,8 @@ import { EstimatesModule } from './modules/estimates/estimates.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -67,6 +69,13 @@ import { PaymentsModule } from './modules/payments/payments.module';
     // ─── Infrastructure ──────────────────────────────
     AppConfigModule,
     DatabaseModule,
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+      },
+    }),
 
     // ─── Features ────────────────────────────────────
     HealthModule,
@@ -80,6 +89,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     InventoryModule,
     InvoicesModule,
     PaymentsModule,
+    NotificationsModule,
   ],
   providers: [
     {

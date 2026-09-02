@@ -5,6 +5,7 @@ import { QueryInvoiceDto } from './dto/query-invoice.dto';
 import { Prisma, InvoiceStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { ClsService } from 'nestjs-cls';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InvoicesService {
@@ -12,6 +13,7 @@ export class InvoicesService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(dto: CreateInvoiceDto, userId?: string, ipAddress?: string) {
@@ -50,6 +52,14 @@ export class InvoicesService {
       ipAddress,
       details: { invoiceId: invoice.id, invoiceNumber },
     });
+
+    await this.notificationsService.queueInvoiceIssued(
+      invoice.tenantId,
+      invoice.customerId,
+      invoice.id,
+      invoice.invoiceNumber,
+      invoice.total
+    );
 
     return invoice;
   }

@@ -6,6 +6,7 @@ import { ApproveEstimateDto } from './dto/approve-estimate.dto';
 import { AuditService } from '../audit/audit.service';
 import { ClsService } from 'nestjs-cls';
 import { EstimateStatus, WorkOrderStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EstimatesService {
@@ -13,6 +14,7 @@ export class EstimatesService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(dto: CreateEstimateDto, userId?: string, ipAddress?: string) {
@@ -120,6 +122,20 @@ export class EstimatesService {
       details: { estimateId: id, oldStatus: existing.status, newStatus: status },
     });
 
+    if (status === EstimateStatus.SENT) {
+      const workOrder = await this.prisma.extended.workOrder.findUnique({
+        where: { id: estimate.workOrderId },
+      });
+      if (workOrder) {
+        await this.notificationsService.queueEstimateSent(
+          estimate.tenantId,
+          workOrder.customerId,
+          estimate.id,
+          estimate.total
+        );
+      }
+    }
+
     return estimate;
   }
 
@@ -185,6 +201,15 @@ export class EstimatesService {
         ipAddress,
         details: { estimateId: id },
       });
+
+      if (dto.approved) {
+        await this.notificationsService.queueEstimateApproved(
+          updatedEstimate.tenantId,
+          (updatedEstimate as any).workOrder?.customerId, // Fetched in transaction
+          updatedEstimate.id
+        );
+      }
+
       return updatedEstimate;
     });
   }

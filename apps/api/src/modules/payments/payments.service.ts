@@ -3,12 +3,14 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { PaymentEvent } from './providers/payment-provider.interface';
 import { Prisma, PaymentStatus, InvoiceStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async processWebhookEvent(event: PaymentEvent, provider: string, rawPayload: any) {
@@ -97,6 +99,15 @@ export class PaymentsService {
         amount: event.amount,
       },
     });
+
+    if (event.status === 'SUCCESS') {
+      await this.notificationsService.queuePaymentReceived(
+        invoice.tenantId,
+        invoice.customerId,
+        invoice.id,
+        event.amount || invoice.total
+      );
+    }
 
     return { status: 'processed' };
   }

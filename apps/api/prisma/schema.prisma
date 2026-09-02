@@ -29,6 +29,7 @@ model Tenant {
   inventoryTransactions InventoryTransaction[]
   invoices        Invoice[]
   payments        Payment[]
+  notifications   Notification[]
 
   @@map("tenants")
 }
@@ -118,6 +119,7 @@ model User {
   assignedWorkOrders      WorkOrder[]
   workOrderTimelineEvents WorkOrderTimelineEvent[]
   inventoryTransactions   InventoryTransaction[]
+  notifications           Notification[]
 
   @@index([tenantId])
   @@map("users")
@@ -197,6 +199,7 @@ model Customer {
   serviceRequests ServiceRequest[]
   workOrders      WorkOrder[]
   invoices        Invoice[]
+  notifications   Notification[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -487,5 +490,43 @@ model Payment {
   @@index([invoiceId])
   @@index([providerTransactionId])
   @@map("payments")
+}
+
+// ─── Notifications (Phase 11) ──────────────────────
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+}
+
+model Notification {
+  id         String              @id @default(uuid())
+  tenantId   String
+  customerId String?
+  userId     String?
+  channel    NotificationChannel
+  status     NotificationStatus  @default(PENDING)
+  title      String
+  message    String
+  metadata   Json?               // Details for deep-linking or context
+  error      String?             // Failure reason if FAILED
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  tenant     Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user       User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([userId])
+  @@index([status])
+  @@map("notifications")
 }
 
