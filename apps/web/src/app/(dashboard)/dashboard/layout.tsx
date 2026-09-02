@@ -22,6 +22,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             Customers
           </Link>
+          <Link
+            href="/inventory"
+            className="block px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+          >
+            Inventory
+          </Link>
         </nav>
       </aside>
 
