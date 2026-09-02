@@ -27,6 +27,8 @@ model Tenant {
   suppliers       Supplier[]
   parts           Part[]
   inventoryTransactions InventoryTransaction[]
+  invoices        Invoice[]
+  payments        Payment[]
 
   @@map("tenants")
 }
@@ -194,6 +196,7 @@ model Customer {
   assets          Asset[]
   serviceRequests ServiceRequest[]
   workOrders      WorkOrder[]
+  invoices        Invoice[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -270,6 +273,7 @@ model WorkOrder {
   timeline   WorkOrderTimelineEvent[]
   diagnosis  Diagnosis?
   estimates  Estimate[]
+  invoices   Invoice[]
 
   @@unique([tenantId, workOrderNumber])
   @@index([tenantId])
@@ -413,5 +417,75 @@ model InventoryTransaction {
   @@index([tenantId])
   @@index([partId])
   @@map("inventory_transactions")
+}
+
+// ─── Invoices & Payments (Phase 10) ──────────────
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String
+  tenantId      String
+  customerId    String
+  workOrderId   String?
+  status        InvoiceStatus @default(DRAFT)
+  items         Json?         // Array of { description, quantity, unitPrice, total }
+  subtotal      Float         @default(0)
+  tax           Float         @default(0)
+  discount      Float         @default(0)
+  total         Float         @default(0)
+  issuedAt      DateTime?
+  dueDate       DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  workOrder     WorkOrder?    @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  payments      Payment[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([workOrderId])
+  @@map("invoices")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                    String        @id @default(uuid())
+  tenantId              String
+  invoiceId             String
+  amount                Float
+  currency              String        @default("USD")
+  provider              String        // e.g., "MOCK", "STRIPE", "RAZORPAY"
+  providerTransactionId String?       // ID from external provider
+  status                PaymentStatus @default(PENDING)
+  paymentMethod         String?       // e.g., "credit_card"
+  metadata              Json?         // Stores webhook payloads/details
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  tenant                Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice               Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([providerTransactionId])
+  @@map("payments")
 }
 

@@ -17,6 +17,8 @@ import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { DiagnosesModule } from './modules/diagnoses/diagnoses.module';
 import { EstimatesModule } from './modules/estimates/estimates.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -76,6 +78,8 @@ import { InventoryModule } from './modules/inventory/inventory.module';
     DiagnosesModule,
     EstimatesModule,
     InventoryModule,
+    InvoicesModule,
+    PaymentsModule,
   ],
   providers: [
     {
