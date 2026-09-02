@@ -19,7 +19,7 @@ export class CustomersService {
           phone: dto.phone,
           address: dto.address ? (dto.address as Prisma.InputJsonValue) : undefined,
           notes: dto.notes,
-        },
+        } as any,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

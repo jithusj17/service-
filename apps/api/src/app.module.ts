@@ -16,6 +16,7 @@ import { ServiceRequestsModule } from './modules/service-requests/service-reques
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { DiagnosesModule } from './modules/diagnoses/diagnoses.module';
 import { EstimatesModule } from './modules/estimates/estimates.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { EstimatesModule } from './modules/estimates/estimates.module';
     WorkOrdersModule,
     DiagnosesModule,
     EstimatesModule,
+    InventoryModule,
   ],
   providers: [
     {

@@ -24,6 +24,9 @@ model Tenant {
   workOrderTimelineEvents WorkOrderTimelineEvent[]
   diagnoses       Diagnosis[]
   estimates       Estimate[]
+  suppliers       Supplier[]
+  parts           Part[]
+  inventoryTransactions InventoryTransaction[]
 
   @@map("tenants")
 }
@@ -112,6 +115,7 @@ model User {
   auditEvents             AuditEvent[]
   assignedWorkOrders      WorkOrder[]
   workOrderTimelineEvents WorkOrderTimelineEvent[]
+  inventoryTransactions   InventoryTransaction[]
 
   @@index([tenantId])
   @@map("users")
@@ -337,3 +341,77 @@ model Estimate {
   @@index([tenantId])
   @@map("estimates")
 }
+
+// ─── Inventory Management (Phase 9) ──────────────
+
+model Supplier {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  address     Json?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parts       Part[]
+
+  @@index([tenantId])
+  @@map("suppliers")
+}
+
+model Part {
+  id               String   @id @default(uuid())
+  tenantId         String
+  supplierId       String?
+  name             String
+  description      String?
+  partNumber       String?
+  stockQuantity    Int      @default(0)
+  minStockQuantity Int      @default(0)
+  costPrice        Float    @default(0)
+  retailPrice      Float    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier         Supplier?              @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  transactions     InventoryTransaction[]
+
+  @@unique([tenantId, partNumber])
+  @@index([tenantId])
+  @@index([supplierId])
+  @@map("parts")
+}
+
+enum InventoryTransactionType {
+  PURCHASE
+  ADJUSTMENT
+  USED_IN_REPAIR
+  RETURN
+  DAMAGE
+}
+
+model InventoryTransaction {
+  id          String                   @id @default(uuid())
+  tenantId    String
+  partId      String
+  userId      String?
+  type        InventoryTransactionType
+  quantity    Int                      // Positive for addition, negative for deduction
+  referenceId String?                  // e.g., workOrderId
+  notes       String?
+  createdAt   DateTime                 @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  part        Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([partId])
+  @@map("inventory_transactions")
+}
+

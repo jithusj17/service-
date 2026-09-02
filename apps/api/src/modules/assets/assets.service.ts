@@ -29,7 +29,7 @@ export class AssetsService {
         color: dto.color,
         notes: dto.notes,
         attributes: dto.attributes ? (dto.attributes as Prisma.InputJsonValue) : undefined,
-      },
+      } as any,
     });
   }
 

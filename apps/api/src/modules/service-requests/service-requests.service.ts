@@ -32,7 +32,7 @@ export class ServiceRequestsService {
         problemDescription: dto.problemDescription,
         priority: dto.priority,
         attachments: dto.attachments ? (dto.attachments as Prisma.InputJsonValue) : undefined,
-      },
+      } as any,
     });
 
     await this.auditService.logEvent({
