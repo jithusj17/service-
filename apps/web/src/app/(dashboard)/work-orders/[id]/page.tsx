@@ -49,7 +49,7 @@ interface WorkOrder {
   notes: string;
   createdAt: string;
   asset: { brand: string; model: string };
-  customer: { firstName: string; lastName: string };
+  customer: { id: string; firstName: string; lastName: string };
   technician?: User;
   timeline: TimelineEvent[];
 }
@@ -331,6 +331,42 @@ export default function WorkOrderDetailsPage() {
                          className="px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700"
                        >
                          Send to Customer
+                       </button>
+                     )}
+                     {est.status === 'APPROVED' && (
+                       <button
+                         onClick={async () => {
+                           try {
+                             // Format estimate items into invoice items
+                             const items = [
+                               ...(est.parts || []).map((p: any) => ({
+                                 description: p.name,
+                                 quantity: Number(p.quantity) || 1,
+                                 unitPrice: Number(p.price) || 0
+                               })),
+                               ...(est.laborItems || []).map((l: any) => ({
+                                 description: l.name,
+                                 quantity: Number(l.hours) || 1,
+                                 unitPrice: Number(l.rate) || 0
+                               }))
+                             ];
+
+                             await api.post(`/invoices`, {
+                               customerId: workOrder.customer.id, // We'd ideally need the actual ID but we only have name here. Oh wait, the interface doesn't have customer.id
+                               workOrderId: id,
+                               items,
+                               tax: est.tax,
+                               discount: est.discount,
+                             });
+                             alert('Invoice Generated Successfully!');
+                           } catch (err: any) {
+                             console.error(err);
+                             alert('Failed to generate invoice. Note: Customer ID must be available.');
+                           }
+                         }}
+                         className="px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 ml-2"
+                       >
+                         Generate Invoice
                        </button>
                      )}
                      <a href={`/customer/estimates/${est.id}`} target="_blank" rel="noreferrer" className="ml-3 text-sm text-blue-600 hover:underline">
