@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useParams } from 'next/navigation';
+import { DiagnosisForm } from '@/components/forms/diagnosis-form';
+import { EstimateForm } from '@/components/forms/estimate-form';
 
 interface User {
   id: string;
@@ -15,6 +17,27 @@ interface TimelineEvent {
   details: any;
   createdAt: string;
   user?: User;
+}
+
+interface Diagnosis {
+  id: string;
+  problemFound: string;
+  recommendation: string;
+  severity: string;
+  notes?: string;
+  createdAt: string;
+}
+
+interface Estimate {
+  id: string;
+  status: string;
+  subtotal: number;
+  tax: number;
+  discount: number;
+  total: number;
+  laborItems: any[];
+  parts: any[];
+  createdAt: string;
 }
 
 interface WorkOrder {
@@ -41,9 +64,15 @@ export default function WorkOrderDetailsPage() {
   const params = useParams();
   const id = params.id as string;
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(null);
+  const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [technicians, setTechnicians] = useState<User[]>([]);
   const [assigningId, setAssigningId] = useState('');
+  
+  const [showDiagnosisForm, setShowDiagnosisForm] = useState(false);
+  const [showEstimateForm, setShowEstimateForm] = useState(false);
 
   const fetchWorkOrder = async () => {
     try {
@@ -58,11 +87,26 @@ export default function WorkOrderDetailsPage() {
     }
   };
 
-  const fetchTechnicians = async () => {
-    // In a real app, you'd fetch users with role TECHNICIAN or STAFF
+  const fetchDiagnosis = async () => {
     try {
-      // Mocking for now as we don't have a specific GET /users endpoint built yet
-      // const res = await api.get('/users?role=TECHNICIAN');
+      const res = await api.get<{ data: Diagnosis }>(`/diagnoses/work-order/${id}`);
+      setDiagnosis(res.data);
+    } catch (error) {
+      console.error('Failed to fetch diagnosis', error);
+    }
+  };
+
+  const fetchEstimates = async () => {
+    try {
+      const res = await api.get<{ data: Estimate[] }>(`/estimates/work-order/${id}`);
+      setEstimates(res.data);
+    } catch (error) {
+      console.error('Failed to fetch estimates', error);
+    }
+  };
+
+  const fetchTechnicians = async () => {
+    try {
       setTechnicians([{ id: 'tech-1', name: 'John Doe (Tech)' }]);
     } catch (error) {
       console.error('Failed to fetch technicians', error);
@@ -73,6 +117,8 @@ export default function WorkOrderDetailsPage() {
     if (id) {
       fetchWorkOrder();
       fetchTechnicians();
+      fetchDiagnosis();
+      fetchEstimates();
     }
   }, [id]);
 
@@ -169,6 +215,137 @@ export default function WorkOrderDetailsPage() {
         </div>
       </div>
 
+      {/* Diagnosis Section */}
+      <div className="bg-white shadow sm:rounded-lg mt-6">
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Diagnosis</h3>
+          {!diagnosis && !showDiagnosisForm && (
+            <button
+              onClick={() => setShowDiagnosisForm(true)}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+            >
+              Add Diagnosis
+            </button>
+          )}
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5">
+          {diagnosis ? (
+            <dl className="sm:divide-y sm:divide-gray-200">
+              <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">Problem Found</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{diagnosis.problemFound}</dd>
+              </div>
+              <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">Recommendation</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{diagnosis.recommendation}</dd>
+              </div>
+              <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">Severity</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800`}>
+                    {diagnosis.severity}
+                  </span>
+                </dd>
+              </div>
+              {diagnosis.notes && (
+                <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                  <dt className="text-sm font-medium text-gray-500">Notes</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{diagnosis.notes}</dd>
+                </div>
+              )}
+            </dl>
+          ) : showDiagnosisForm ? (
+            <div>
+              <button 
+                onClick={() => setShowDiagnosisForm(false)}
+                className="text-sm text-gray-500 hover:text-gray-700 mb-4"
+              >
+                &larr; Cancel
+              </button>
+              <DiagnosisForm 
+                workOrderId={id} 
+                onSuccess={() => {
+                  setShowDiagnosisForm(false);
+                  fetchDiagnosis();
+                }} 
+              />
+            </div>
+          ) : (
+             <p className="text-sm text-gray-500">No diagnosis recorded yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Estimates Section */}
+      <div className="bg-white shadow sm:rounded-lg mt-6">
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Estimates</h3>
+          {!showEstimateForm && (
+            <button
+              onClick={() => setShowEstimateForm(true)}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+            >
+              Create Estimate
+            </button>
+          )}
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5">
+          {showEstimateForm ? (
+             <div>
+               <button 
+                 onClick={() => setShowEstimateForm(false)}
+                 className="text-sm text-gray-500 hover:text-gray-700 mb-4"
+               >
+                 &larr; Cancel
+               </button>
+               <EstimateForm 
+                 workOrderId={id} 
+                 onSuccess={() => {
+                   setShowEstimateForm(false);
+                   fetchEstimates();
+                 }} 
+               />
+             </div>
+          ) : estimates.length > 0 ? (
+            <ul className="space-y-4">
+              {estimates.map(est => (
+                <li key={est.id} className="border border-gray-200 rounded-md p-4 bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mb-2">
+                      {est.status}
+                    </span>
+                    <p className="text-sm text-gray-700">Total: <span className="font-semibold">${est.total.toFixed(2)}</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Created: {new Date(est.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                     {est.status === 'DRAFT' && (
+                       <button
+                         onClick={async () => {
+                           try {
+                             await api.patch(`/estimates/${est.id}/status`, { status: 'SENT' });
+                             fetchEstimates();
+                           } catch (err) {
+                             alert('Failed to send estimate');
+                           }
+                         }}
+                         className="px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700"
+                       >
+                         Send to Customer
+                       </button>
+                     )}
+                     <a href={`/customer/estimates/${est.id}`} target="_blank" rel="noreferrer" className="ml-3 text-sm text-blue-600 hover:underline">
+                       Preview Customer Link
+                     </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">No estimates recorded yet.</p>
+          )}
+        </div>
+      </div>
+
       <div className="bg-white shadow sm:rounded-lg mt-6">
         <div className="px-4 py-5 sm:px-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Timeline</h3>
@@ -204,25 +381,7 @@ export default function WorkOrderDetailsPage() {
           </ul>
         </div>
       </div>
-      <div className="bg-white shadow sm:rounded-lg mt-6">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Diagnosis</h3>
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5">
-           <p className="text-sm text-gray-500">Diagnosis UI component will be integrated here.</p>
-           {/* Placeholder for Diagnosis form */}
-        </div>
-      </div>
 
-      <div className="bg-white shadow sm:rounded-lg mt-6">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Estimates</h3>
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5">
-           <p className="text-sm text-gray-500">Estimates UI component will be integrated here.</p>
-           {/* Placeholder for Estimates list and creation form */}
-        </div>
-      </div>
     </div>
   );
 }
