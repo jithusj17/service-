@@ -22,6 +22,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BullModule } from '@nestjs/bullmq';
 import { RealtimeModule } from './modules/realtime/realtime.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
     PaymentsModule,
     NotificationsModule,
     RealtimeModule,
+    ReportsModule,
   ],
   providers: [
     {

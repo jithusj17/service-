@@ -283,6 +283,8 @@ model WorkOrder {
   @@index([customerId])
   @@index([assetId])
   @@index([technicianId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status])
   @@map("work_orders")
 }
 
@@ -346,6 +348,7 @@ model Estimate {
 
   @@index([workOrderId])
   @@index([tenantId])
+  @@index([tenantId, status])
   @@map("estimates")
 }
 
@@ -391,6 +394,7 @@ model Part {
   @@unique([tenantId, partNumber])
   @@index([tenantId])
   @@index([supplierId])
+  @@index([tenantId, stockQuantity])
   @@map("parts")
 }
 
@@ -419,6 +423,7 @@ model InventoryTransaction {
 
   @@index([tenantId])
   @@index([partId])
+  @@index([tenantId, type])
   @@map("inventory_transactions")
 }
 
@@ -489,6 +494,7 @@ model Payment {
   @@index([tenantId])
   @@index([invoiceId])
   @@index([providerTransactionId])
+  @@index([tenantId, status, createdAt])
   @@map("payments")
 }
 
