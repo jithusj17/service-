@@ -21,6 +21,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BullModule } from '@nestjs/bullmq';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { BullModule } from '@nestjs/bullmq';
     InvoicesModule,
     PaymentsModule,
     NotificationsModule,
+    RealtimeModule,
   ],
   providers: [
     {

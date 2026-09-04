@@ -7,11 +7,16 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { RedisIoAdapter } from './modules/realtime/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
+
+  // Setup Redis IoAdapter for WebSockets
+  const redisIoAdapter = new RedisIoAdapter(app);
+  app.useWebSocketAdapter(redisIoAdapter);
 
   // ─── Logger ────────────────────────────────────────
   app.useLogger(app.get(Logger));
