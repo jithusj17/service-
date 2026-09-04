@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import Link from 'next/link';
+import { useSocketEvent } from '@/hooks/use-socket-event';
 
 interface WorkOrder {
   id: string;
@@ -20,19 +21,25 @@ export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchWorkOrders = async () => {
+    try {
+      const res = await api.get<{ data: WorkOrder[] }>('/work-orders');
+      setWorkOrders(res.data);
+    } catch (error) {
+      console.error('Failed to fetch work orders', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchWorkOrders = async () => {
-      try {
-        const res = await api.get<{ data: WorkOrder[] }>('/work-orders');
-        setWorkOrders(res.data);
-      } catch (error) {
-        console.error('Failed to fetch work orders', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchWorkOrders();
   }, []);
+
+  useSocketEvent('workOrder.updated', () => {
+    console.log('Work order updated, refreshing list...');
+    fetchWorkOrders();
+  });
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
