@@ -8,6 +8,8 @@ import { ClsService } from 'nestjs-cls';
 import { EstimateStatus, WorkOrderStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 
+import { RealtimeService } from '../realtime/realtime.service';
+
 @Injectable()
 export class EstimatesService {
   constructor(
@@ -15,6 +17,7 @@ export class EstimatesService {
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
     private readonly notificationsService: NotificationsService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   async create(dto: CreateEstimateDto, userId?: string, ipAddress?: string) {
@@ -40,6 +43,8 @@ export class EstimatesService {
       ipAddress,
       details: { estimateId: estimate.id, workOrderId: dto.workOrderId },
     });
+
+    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
 
     return estimate;
   }
@@ -97,6 +102,8 @@ export class EstimatesService {
       details: { estimateId: estimate.id },
     });
 
+    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
+
     return estimate;
   }
 
@@ -135,6 +142,8 @@ export class EstimatesService {
         );
       }
     }
+
+    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
 
     return estimate;
   }
@@ -209,6 +218,8 @@ export class EstimatesService {
           updatedEstimate.id
         );
       }
+
+      this.realtimeService.emitToTenant(updatedEstimate.tenantId, 'estimate.updated', updatedEstimate);
 
       return updatedEstimate;
     });

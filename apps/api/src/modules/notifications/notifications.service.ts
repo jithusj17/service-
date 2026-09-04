@@ -3,12 +3,15 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from '@service/shared';
 
+import { RealtimeService } from '../realtime/realtime.service';
+
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
   constructor(
     @InjectQueue(QUEUE_NAMES.NOTIFICATION) private readonly notificationQueue: Queue,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   private async enqueue(jobName: string, data: any) {
@@ -23,6 +26,11 @@ export class NotificationsService {
         removeOnFail: false,
       });
       this.logger.log(`Enqueued notification job: ${jobName}`);
+      
+      // Emit real-time event for UI updates
+      if (data.tenantId) {
+        this.realtimeService.emitToTenant(data.tenantId, 'notification.created', { jobName, data });
+      }
     } catch (error) {
       this.logger.error(`Failed to enqueue notification job: ${jobName}`, error);
     }
