@@ -4,6 +4,7 @@ import './globals.css';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { SocketProvider } from '@/components/providers/socket-provider';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <SocketProvider>{children}</SocketProvider>
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>
