@@ -3,6 +3,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
+import * as express from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -23,6 +24,7 @@ async function bootstrap() {
 
   // ─── Security ──────────────────────────────────────
   app.use(helmet());
+  app.use(express.json({ limit: '1mb' }));
   app.enableCors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
@@ -75,6 +77,7 @@ async function bootstrap() {
   });
 
   // ─── Start ─────────────────────────────────────────
+  app.enableShutdownHooks();
   const port = process.env.PORT || 3001;
   await app.listen(port);
 

@@ -4,7 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ClsModule } from 'nestjs-cls';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { configSchema } from './config/config.schema';
 import { DatabaseModule } from './database/prisma.module';
 import { HealthModule } from './health/health.module';
@@ -41,10 +41,15 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       global: true,
       middleware: { mount: true },
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
 
     // ─── Logging ─────────────────────────────────────
     LoggerModule.forRoot({
       pinoHttp: {
+        redact: ['req.headers.authorization', 'req.body.password', 'req.body.token'],
         transport:
           process.env.NODE_ENV !== 'production'
             ? {
