@@ -8,7 +8,7 @@ import { AuditService } from '../audit/audit.service';
 import { Prisma, WorkOrderStatus } from '@prisma/client';
 import { ClsService } from 'nestjs-cls';
 import { NotificationsService } from '../notifications/notifications.service';
-import { RealtimeService } from '../realtime/realtime.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class WorkOrdersService {
@@ -17,7 +17,7 @@ export class WorkOrdersService {
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
     private readonly notificationsService: NotificationsService,
-    private readonly realtimeService: RealtimeService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Valid state transitions
@@ -79,7 +79,7 @@ export class WorkOrdersService {
       details: { workOrderId: workOrder.id, workOrderNumber },
     });
 
-    this.realtimeService.emitToTenant(workOrder.tenantId, 'workOrder.updated', workOrder);
+    this.eventEmitter.emit('workOrder.updated', workOrder);
 
     return workOrder;
   }
@@ -212,7 +212,7 @@ export class WorkOrdersService {
       updated.workOrderNumber
     );
 
-    this.realtimeService.emitToTenant(updated.tenantId, 'workOrder.updated', updated);
+    this.eventEmitter.emit('workOrder.updated', updated);
 
     return updated;
   }
@@ -266,7 +266,7 @@ export class WorkOrdersService {
       details: { workOrderId: id, technicianId: dto.technicianId },
     });
 
-    this.realtimeService.emitToTenant(updated.tenantId, 'workOrder.updated', updated);
+    this.eventEmitter.emit('workOrder.updated', updated);
 
     return updated;
   }

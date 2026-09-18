@@ -50,6 +50,9 @@ export const Permissions = {
   USER_READ: 'user.read',
   USER_CREATE: 'user.create',
   USER_UPDATE: 'user.update',
+  
+  // Report Permissions
+  REPORT_READ: 'report.read',
 } as const;
 
 export type Permission = (typeof Permissions)[keyof typeof Permissions];

@@ -8,7 +8,7 @@ import { ClsService } from 'nestjs-cls';
 import { EstimateStatus, WorkOrderStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 
-import { RealtimeService } from '../realtime/realtime.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class EstimatesService {
@@ -17,7 +17,7 @@ export class EstimatesService {
     private readonly auditService: AuditService,
     private readonly cls: ClsService,
     private readonly notificationsService: NotificationsService,
-    private readonly realtimeService: RealtimeService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(dto: CreateEstimateDto, userId?: string, ipAddress?: string) {
@@ -44,7 +44,7 @@ export class EstimatesService {
       details: { estimateId: estimate.id, workOrderId: dto.workOrderId },
     });
 
-    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
+    this.eventEmitter.emit('estimate.updated', estimate);
 
     return estimate;
   }
@@ -102,7 +102,7 @@ export class EstimatesService {
       details: { estimateId: estimate.id },
     });
 
-    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
+    this.eventEmitter.emit('estimate.updated', estimate);
 
     return estimate;
   }
@@ -143,7 +143,7 @@ export class EstimatesService {
       }
     }
 
-    this.realtimeService.emitToTenant(estimate.tenantId, 'estimate.updated', estimate);
+    this.eventEmitter.emit('estimate.updated', estimate);
 
     return estimate;
   }
@@ -219,7 +219,7 @@ export class EstimatesService {
         );
       }
 
-      this.realtimeService.emitToTenant(updatedEstimate.tenantId, 'estimate.updated', updatedEstimate);
+      this.eventEmitter.emit('estimate.updated', updatedEstimate);
 
       return updatedEstimate;
     });

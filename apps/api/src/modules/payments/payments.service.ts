@@ -4,6 +4,7 @@ import { AuditService } from '../audit/audit.service';
 import { PaymentEvent } from './providers/payment-provider.interface';
 import { Prisma, PaymentStatus, InvoiceStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PaymentsService {
@@ -11,6 +12,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly notificationsService: NotificationsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async processWebhookEvent(event: PaymentEvent, provider: string, rawPayload: any) {
@@ -107,6 +109,7 @@ export class PaymentsService {
         invoice.id,
         event.amount || invoice.total
       );
+      this.eventEmitter.emit('payment.received', { tenantId: invoice.tenantId, invoiceId: invoice.id, amount: event.amount || invoice.total });
     }
 
     return { status: 'processed' };

@@ -24,8 +24,11 @@ import { BullModule } from '@nestjs/bullmq';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { ReportsModule } from './modules/reports/reports.module';
 
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     // ─── Configuration ───────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,

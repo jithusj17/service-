@@ -53,7 +53,7 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       }
 
       this.logger.debug(`Client connected: ${client.id} (tenant: ${tenantId}, user: ${userId})`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn(`Connection rejected: ${error.message}`);
       client.disconnect();
     }
