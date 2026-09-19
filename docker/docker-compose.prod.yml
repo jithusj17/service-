@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+  # ─── Reverse Proxy & HTTPS ────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: service-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+  # ─── Frontend (Web) ───────────────────────────────
+  web:
+    build:
+      context: ../
+      dockerfile: apps/web/Dockerfile
+    container_name: service-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://${DOMAIN:-localhost}/api
+    depends_on:
+      - api
+
+  # ─── Backend (API) ────────────────────────────────
+  api:
+    build:
+      context: ../
+      dockerfile: apps/api/Dockerfile
+    container_name: service-api
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: ${API_REPLICAS:-2} # Support multiple instances
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-service_platform}?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=https://${DOMAIN:-localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─── Background Worker ────────────────────────────
+  worker:
+    build:
+      context: ../
+      dockerfile: apps/worker/Dockerfile
+    container_name: service-worker
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: ${WORKER_REPLICAS:-1} # Independently scalable
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-service_platform}?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ─── PostgreSQL Database ──────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-service_platform}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis Cache & Queues ─────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: service-redis
+    restart: unless-stopped
+    command: ${REDIS_PASSWORD:+redis-server --requirepass $REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── MinIO Object Storage ─────────────────────────
+  minio:
+    image: minio/minio
+    container_name: service-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-admin123}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ─── Monitoring: Prometheus ───────────────────────
+  prometheus:
+    image: prom/prometheus
+    container_name: service-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      - api
+
+  # ─── Monitoring: Grafana ──────────────────────────
+  grafana:
+    image: grafana/grafana
+    container_name: service-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+  prometheus_data:
+  grafana_data:
