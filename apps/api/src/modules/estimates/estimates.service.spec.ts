@@ -5,6 +5,8 @@ import { AuditService } from '../audit/audit.service';
 import { ClsService } from 'nestjs-cls';
 import { EstimateStatus, WorkOrderStatus } from '@prisma/client';
 import { BadRequestException } from '@nestjs/common';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('EstimatesService', () => {
   let service: EstimatesService;
@@ -27,6 +29,8 @@ describe('EstimatesService', () => {
 
   const mockAuditService = { logEvent: jest.fn() };
   const mockClsService = { get: jest.fn() };
+  const mockNotificationsService = { sendStatusUpdateNotification: jest.fn(), sendEstimateRequiresApprovalNotification: jest.fn(), queueEstimateApproved: jest.fn() };
+  const mockEventEmitter = { emit: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,6 +39,8 @@ describe('EstimatesService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: AuditService, useValue: mockAuditService },
         { provide: ClsService, useValue: mockClsService },
+        { provide: NotificationsService, useValue: mockNotificationsService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
