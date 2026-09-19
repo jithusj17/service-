@@ -1,16 +1,14 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { INestApplication, ValidationPipe } from '@common';
-// import * as request from 'supertest';
-// import { AppModule } from './../src/app.module';
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from './../src/app.module';
+import { PrismaService } from '../src/database/prisma.service';
 
-// A placeholder for e2e tests.
-// Full implementation would require a dedicated test database, Prisma mock, or test containers.
 describe('AuthController (e2e)', () => {
-  let app: any;
+  let app: INestApplication;
+  let prisma: PrismaService;
 
   beforeAll(async () => {
-    // In a real e2e environment, we would use a test DB and PrismaService teardown logic
-    /*
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -18,7 +16,15 @@ describe('AuthController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
     await app.init();
-    */
+    
+    prisma = app.get<PrismaService>(PrismaService);
+    // Clean up test data if needed
+    try {
+      await prisma.user.deleteMany({ where: { email: 'test-e2e@example.com' } });
+      await prisma.tenant.deleteMany({ where: { name: 'E2E Test Tenant' } });
+    } catch (e) {
+      // Ignore if not exists
+    }
   });
 
   afterAll(async () => {
@@ -27,8 +33,70 @@ describe('AuthController (e2e)', () => {
     }
   });
 
-  it('/auth/register (POST) - should return 400 for bad payload', () => {
-    // return request(app.getHttpServer()).post('/auth/register').send({}).expect(400);
-    expect(true).toBe(true);
+  describe('/auth/register (POST)', () => {
+    it('should return 400 for bad payload', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: 'not-an-email',
+          password: '123'
+        })
+        .expect(400);
+    });
+
+    it('should successfully register a new tenant and admin user', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: 'test-e2e@example.com',
+          password: 'Password123!',
+          firstName: 'E2E',
+          lastName: 'User',
+          tenantName: 'E2E Test Tenant'
+        })
+        .expect(201);
+      
+      expect(response.body).toHaveProperty('accessToken');
+      expect(response.body).toHaveProperty('user');
+      expect(response.body.user.email).toBe('test-e2e@example.com');
+      expect(response.body.user.role).toBe('ADMIN');
+    });
+
+    it('should fail to register with an existing email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: 'test-e2e@example.com',
+          password: 'Password123!',
+          firstName: 'E2E',
+          lastName: 'User',
+          tenantName: 'Another Tenant'
+        })
+        .expect(400);
+    });
+  });
+
+  describe('/auth/login (POST)', () => {
+    it('should login successfully with correct credentials', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'test-e2e@example.com',
+          password: 'Password123!'
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('accessToken');
+    });
+
+    it('should fail with incorrect password', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'test-e2e@example.com',
+          password: 'WrongPassword123!'
+        })
+        .expect(401);
+    });
   });
 });
